@@ -19,7 +19,6 @@ enum HttpVersion:
   case `Http/1.1`
 
 //See: https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
-
 enum StatusCode(number: Int, message: String):
   case Continue extends StatusCode(100, "Continue")
   case SwitchingProtocols extends StatusCode(101, "Switching Protocols")

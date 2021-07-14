@@ -1,5 +1,6 @@
-package json
+package json.conversion
 
+import json._
 
 trait JsonConversion[A] {
   def toJson(a: A): JsValue
@@ -8,7 +9,7 @@ trait JsonConversion[A] {
 
 def error(jsValue: JsValue, _type: String) = throw new Exception(s"Failed to convert jsvalue ${jsValue} to ${_type}.")
 
-object ValueConversions {
+trait ValueConversions {
 
   given JsonConversion[String] with
     def toJson(a: String) = JsString(a)

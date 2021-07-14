@@ -1,4 +1,6 @@
-package json
+package json.conversion
+
+import json._
 
 object ReflexConversion {
 

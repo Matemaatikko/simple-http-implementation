@@ -8,10 +8,10 @@ extension (str: String)
   def toJson: JsValue = ToJson(str)
 
 object ToJson {
-  def apply(str: String): JsValue =  new JsonParser(str.iterator).parseJsonValue
+  def apply(str: String): JsValue = new JsonParser((str + " ").iterator).parseJsonValue
 }
 
-
+//Json-format used: ttps://www.json.org/json-en.html
 class JsonParser(stream: Iterator[Char]) {
 
   extension (char: Char)
@@ -28,8 +28,8 @@ class JsonParser(stream: Iterator[Char]) {
     else currentCharacter = None
     last
 
-  def skip(value: Char): Unit =
-    assert(peek == value)
+  def skip(value: Char, error: String = ""): Unit =
+    if peek != value then throw new Exception(error + peek)
     consume
 
   def skipWhiteSpaces =
@@ -52,6 +52,7 @@ class JsonParser(stream: Iterator[Char]) {
       case '['  => parseArray
       case '-'  => parseNumber
       case a if a.isDigit => parseNumber
+      case _ => throw new Exception(s"Failed to parse json value. Invalid character: ${peek}")
     }
     skipWhiteSpaces
     result
@@ -59,9 +60,9 @@ class JsonParser(stream: Iterator[Char]) {
   //JsObject
 
   def parseObject: JsObject =
-    skip('{')
+    skip('{', "Parsing object. Expecting {. Having: ")
     val list = parseParamList
-    skip('}')
+    skip('}', "Parsing object. Expecting }. Having: ")
     JsObject(list)
 
   def parseParamList: List[(String, JsValue)] =
@@ -72,22 +73,23 @@ class JsonParser(stream: Iterator[Char]) {
       case ',' =>
         consume
         parseObjectParam :: parseParamList
+      case _ => throw new Exception(s"Failed to parse parameter list for object. Invalid character: ${peek}")
     }
 
   def parseObjectParam: (String, JsValue) =
     skipWhiteSpaces
     val param = parseString
     skipWhiteSpaces
-    skip(':')
+    skip(':', "Parsing parameter list for object. Expecting :. Having: ")
     val value = parseJsonValue
     (param, value)
 
   //JsString
 
   def parseString: String =
-    skip('\"')
+    skip('\"', "String parsing: Start. Expecting \". Having: ")
     val result = parseStringValue
-    skip('\"')
+    skip('\"', "String parsing: End. Expecting \". Having: ")
     result
 
 
@@ -122,39 +124,40 @@ class JsonParser(stream: Iterator[Char]) {
         consume
         val values = collect(4, _.isHexDigit)
         values.toInt.toChar.toString
+      case _ => throw new Exception(s"Failed to parse special character: ${peek}")
     }
 
   // Constants
 
   def parseTrue: JsBoolean =
-    skip('t')
-    skip('r')
-    skip('u')
-    skip('e')
+    skip('t', "Boolean parsing: true. Expecting: t. Having: ")
+    skip('r', "Boolean parsing: true. Expecting: r. Having: ")
+    skip('u', "Boolean parsing: true. Expecting: u. Having: ")
+    skip('e', "Boolean parsing: true. Expecting: e. Having: ")
     JsTrue
 
   def parseFalse: JsBoolean =
-    skip('f')
-    skip('a')
-    skip('l')
-    skip('s')
-    skip('e')
+    skip('f', "Boolean parsing: false. Expecting: f. Having: ")
+    skip('a', "Boolean parsing: false. Expecting: a. Having: ")
+    skip('l', "Boolean parsing: false. Expecting: l. Having: ")
+    skip('s', "Boolean parsing: false. Expecting: s. Having: ")
+    skip('e', "Boolean parsing: false. Expecting: e. Having: ")
     JsFalse
 
   def parseNull: JsValue =
-    skip('n')
-    skip('u')
-    skip('l')
-    skip('l')
+    skip('n', "Null parsing. Expecting: n. Having: ")
+    skip('u', "Null parsing. Expecting: u. Having: ")
+    skip('l', "Null parsing. Expecting: l. Having: ")
+    skip('l', "Null parsing. Expecting: l. Having: ")
     JsNull
 
   //JsArray
 
   def parseArray: JsArray =
-    skip('[')
+    skip('[', "Array parsing. Expecting: [. Having: ")
     skipWhiteSpaces
     val elements = parseList
-    skip(']')
+    skip(']', "Array parsing. Expecting: ]. Having: ")
     JsArray(elements)
 
 
@@ -178,8 +181,9 @@ class JsonParser(stream: Iterator[Char]) {
   def parseNumberValue: BigDecimal =
     peek match {
       case '-' => consume; - parseNumberValue
-      case '0' => consume; parseFraction
-      case a if a.isDigit => BigDecimal(parseInteger) + parseFraction
+      case '0' => consume; parseZero
+      case a if a.isDigit => BigDecimal(parseInteger + parseFraction)
+      case _ => throw new Exception(s"Failed to parse number. Invalid first digit: ${peek}")
     }
 
   def parseInteger: String =
@@ -189,18 +193,26 @@ class JsonParser(stream: Iterator[Char]) {
       else result
     iter("")
 
-  def parseFraction: BigDecimal =
+  def parseZero: BigDecimal =
+      peek match {
+        case '.'        => consume; BigDecimal("0." + parseInteger)
+        case 'e' | 'E'  => consume; parseSign; parseInteger; BigDecimal(0)
+        case _          => BigDecimal(0)
+      }
+
+  def parseFraction: String =
     peek match {
-      case '.'        => consume; BigDecimal("0." + parseInteger)
-      case 'e' | 'E'  => consume; BigDecimal("1e" + parseSign + parseInteger)
-      case _          => BigDecimal(0)
+      case '.'        => consume; "0." + parseInteger
+      case 'e' | 'E'  => consume; "e" + parseSign + parseInteger
+      case _          => ""
     }
 
   def parseSign: String =
     peek match {
       case '+' => consume; "+"
       case '-' => consume; "-"
-      case  _  => "+"
+      case a if a.isDigit  => "+"
+      case _ => throw new Exception(s"Failed to parse exponent sign. Invalid exponent value: ${peek}")
     }
 
 }

@@ -1,19 +1,11 @@
 import jdk.nashorn.internal.parser.JSONParser
 import jdk.nashorn.internal.runtime.QuotedStringTokenizer
 import json._
+import json.conversion.{CaseClassConversionGeneration, JsonConversion, ReflexConversion}
 
 import scala.annotation.Annotation
 
-val example =
-  """
-    |{
-    |  "name" : "Jussi Meikälainen",
-    |  "tosi": true,
-    |  "epat\"osi": false,
-    |  "lista": ["asd", 123.5, {"obj": 1}],
-    |  "obscj\u1234": {"dassd": "as\tdtg", "val": true, "gg": []}
-    | }
-    |""".stripMargin
+
 
 
 //example.toJson
@@ -32,8 +24,8 @@ case class Test2(c: Long, sf: String)
 given Class[Test] = classOf[Test]
 given Class[Test2] = classOf[Test2]
 
-import CaseClassConversion._
-import ValueConversions.{given, *}
+import json.conversion.CaseClassConversion._
+import json.conversion.ValueConversions.{given, *}
 
 
 val conversion = jsonConversion1(Test.apply)
@@ -59,6 +51,10 @@ conversion2.fromJson(jsoasdn)
 enum Planet:
   case Earth, Saturnus, Pluto
 
+Planet.valueOf("Planet")
+
+Planet.Earth.toString
+
 case class Wrap(a: String)
 case class Simple(a: String, b: Int, c: Long, d: Wrap)
 case class SimpleWithEnum(a: String, b: Int, d: Wrap, pl: Planet, s: Seq[String])
@@ -82,3 +78,5 @@ val asdf = SimpleWithEnum("ASD", 214, Wrap("DF"), Planet.Pluto, Seq("ASDF", "fdf
 time(ReflexConversion.toJson(asdf))
 
 ("asd", "asd", "dsa").toList.foreach(println(_))
+
+print(CaseClassConversionGeneration.genUntil(22))
