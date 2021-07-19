@@ -55,10 +55,27 @@ trait CollectionConversion {
     def toJson(a: (A1, A2)) = JsArray(Seq(conv1.toJson(a._1), conv2.toJson(a._2)))
     def fromJson(jsValue: JsValue) = jsValue match {
       case JsArray(list) if list.length == 2 => (conv1.fromJson(list(0)), conv2.fromJson(list(1)))
+      case _ => error(jsValue, "Tuple3")
+    }
+
+  given tupleConv3[A1, A2, A3](using conv1: JsonConversion[A1], conv2: JsonConversion[A2],
+                                     conv3: JsonConversion[A3]): JsonConversion[(A1, A2, A3)] with
+    def toJson(a: (A1, A2, A3)) = JsArray(Seq(conv1.toJson(a._1), conv2.toJson(a._2), conv3.toJson(a._3)))
+    def fromJson(jsValue: JsValue) = jsValue match {
+      case JsArray(list) if list.length == 3 => (conv1.fromJson(list(0)), conv2.fromJson(list(1)), conv3.fromJson(list(2)))
+      case _ => error(jsValue, "Tuple4")
+    }
+
+  given tupleConv4[A1, A2, A3, A4](using conv1: JsonConversion[A1], conv2: JsonConversion[A2],
+                                   conv3: JsonConversion[A3], conv4: JsonConversion[A4]): JsonConversion[(A1, A2, A3, A4)] with
+    def toJson(a: (A1, A2, A3, A4)) = JsArray(Seq(conv1.toJson(a._1), conv2.toJson(a._2), conv3.toJson(a._3), conv4.toJson(a._4)))
+    def fromJson(jsValue: JsValue) = jsValue match {
+      case JsArray(list) if list.length == 4 => (conv1.fromJson(list(0)), conv2.fromJson(list(1)), conv3.fromJson(list(2)), conv4.fromJson(list(3)))
       case _ => error(jsValue, "Tuple2")
     }
 
-  def enumConversion[A](using valueOf: String => A) = new JsonConversion[A] {
+
+  def enumConversion[A](valueOf: String => A) = new JsonConversion[A] {
     def toJson(a: A) = JsString(a.toString)
     def fromJson(jsValue: JsValue) = jsValue match {
       case JsString(value) => valueOf(value)
