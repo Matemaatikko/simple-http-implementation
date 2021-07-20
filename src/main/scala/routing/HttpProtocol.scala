@@ -46,15 +46,57 @@ enum StatusCode(number: Int, message: String):
   case TemporaryRedirect extends StatusCode(307, "Temporary Redirect")
   case PermanentRedirect extends StatusCode(308, "Permanent Redirect")
 
-//TODO Add rest of status codes
+  case BadRequest extends StatusCode(400, "Bad Request")
+  case Unauthorized extends StatusCode(401, "Unauthorized")
+  case PaymentRequired extends StatusCode(402, "Payment Required")
+  case Forbidden extends StatusCode(403, "Forbidden")
+  case NotFound extends StatusCode(404, "Not Found")
+  case MethodNotAllowed extends StatusCode(405, "Method Not Allowed")
+  case NotAcceptable extends StatusCode(406, "Not Acceptable")
+  case ProxyAuthenticationRequired extends StatusCode(407, "Proxy Authentication Required")
+  case RequestTimeout extends StatusCode(408, "Request Timeout")
+  case Conflict extends StatusCode(409, "Conflict")
+  case Gone extends StatusCode(410, "Gone")
+  case LengthRequired extends StatusCode(411, "Length Required")
+  case PreconditionFailed extends StatusCode(412, "Precondition Failed")
+  case PayloadTooLarge extends StatusCode(413, "Payload Too Large")
+  case URITooLong extends StatusCode(414, "URI Too Long")
+  case UnsupportedMediaType extends StatusCode(415, "Unsupported Media Type")
+  case RangeNotSatisfiable extends StatusCode(416, "Range Not Satisfiable")
+  case ExpectationFailed extends StatusCode(417, "Expectation Failed")
+  case IAMATeapot extends StatusCode(418, "I'm a teapot")
+  case MisdirectedRequest extends StatusCode(421, "Misdirected Request")
+  case UnprocessableEntity extends StatusCode(422, "Unprocessable Entity")
+  case Locked extends StatusCode(423, "Locked")
+  case FailedDependency extends StatusCode(424, "Failed Dependency")
+  case TooEarly extends StatusCode(425, "Too Early")
+  case UpgradeRequired extends StatusCode(426, "Upgrade Required")
+  case PreconditionRequired extends StatusCode(428, "Precondition Required")
+  case TooManyRequests extends StatusCode(429, "Too Many Requests")
+  case RequestHeaderFieldsTooLarge extends StatusCode(431, "Request Header Fields Too Large")
+  case UnavailableForLegalReasons extends StatusCode(451, "Unavailable For Legal Reasons")
+
+  case InternalServerError extends StatusCode(500, "Internal Server Error")
+  case NotImplemented extends StatusCode(501, "Not Implemented")
+  case BadGateway extends StatusCode(502, "Bad Gateway")
+  case ServiceUnavailable extends StatusCode(503, "Service Unavailable")
+  case GatewayTimeout extends StatusCode(504, "Gateway Timeout")
+  case HTTPVersionNotSupported extends StatusCode(505, "HTTP Version Not Supported")
+  case VariantAlsoNegotiates extends StatusCode(506, "Variant Also Negotiates")
+  case InsufficientStorage extends StatusCode(507, "Insufficient Storage")
+  case LoopDetected extends StatusCode(508, "Loop Detected")
+  case NotExtended extends StatusCode(510, "Not Extended")
+  case NetworkAuthenticationRequired extends StatusCode(511, "Network Authentication Required")
+end StatusCode
 
 
+case class Header(name: String, value: String)
 
 case class HttpRequest(
                         httpMethod: HttpMethod,
                         path: Path,
                         version: HttpVersion,
-                        httpHeaders: Map[String, String],
+                        httpHeaders: Seq[Header],
                         body: Option[String]
                       )
 

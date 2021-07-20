@@ -9,7 +9,7 @@ class JsonParserTest extends AnyFlatSpec with should.Matchers {
   val example =
     """
       |{
-      |  "name" : "Jussi Meikälainen \n Alias Something",
+      |  "name" : "Jussi Meikälainen \n Something",
       |  "tosi": true,
       |  "epat\"osi": false,
       |  "lista": ["asd", 123.5, {"obj": -0e-10}],
