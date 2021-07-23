@@ -56,7 +56,10 @@ extension[A <: Int](path: RoutePath[A])
     case Path(start, last)  => start.reverse.append(last)
     case VariablePath(list) => list.reverse.appendVariable
   }
-  def apply(values: (HttpMethod, HttpHandler[A])*) = values.map(value => Route[A](path.reverse, value._1, value._2))
+  def apply(tuple: (HttpMethod, HttpHandler[A])) = Seq(Route[A](path.reverse, tuple._1, tuple._2))
+
+extension[A <: Int](routes: Seq[Route[A]])
+  def ~(tuple: (HttpMethod, HttpHandler[A])) = routes :+ Route[A](routes.head.path, tuple._1, tuple._2)
 
 extension(pathList: Seq[String])
   def matching[A <: Int](path: MatchPath[A]): Option[Params[A]] =
@@ -70,7 +73,5 @@ extension(pathList: Seq[String])
         tailMatch.map(a => pathList.head | a)
       case _ => None
     }
-
-//TODO Add Json-convert and login boilerplate
 
 

@@ -106,3 +106,6 @@ case class HttpResponse(
                          headers: Map[String, String],
                          body: Option[String]
                        )
+
+extension (response: HttpResponse)
+  def httpString: String = ???

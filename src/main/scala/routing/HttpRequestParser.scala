@@ -2,8 +2,16 @@ package routing
 
 import scala.annotation.tailrec
 
+case class HttpRequestParsingException(message: String) extends Exception
+
 object ParseHttpRequest {
-  def apply(str: String): HttpRequest = new HttpRequestParser(str.iterator).parseRequest
+  def apply(str: String): HttpRequest =
+    try
+      new HttpRequestParser(str.iterator).parseRequest
+    catch
+      case a: HttpRequestParsingException => throw a
+      case a: Exception =>
+        throw new HttpRequestParsingException(a.getMessage())
 }
 
 class HttpRequestParser(stream: Iterator[Char]) {
@@ -11,7 +19,7 @@ class HttpRequestParser(stream: Iterator[Char]) {
   var currentCharacter: Option[Char] = Some(' ')
 
   def peek: Char =
-    currentCharacter.getOrElse(throw new Exception("Failed to retreive a character from empty stream!"))
+    currentCharacter.getOrElse(throw new HttpRequestParsingException("Failed to retreive a character from empty stream!"))
 
   def consume: Char =
     val last = peek
@@ -20,7 +28,7 @@ class HttpRequestParser(stream: Iterator[Char]) {
     last
 
   def skip(value: Char, error: String = ""): Unit =
-    if peek != value then throw new Exception(error + peek)
+    if peek != value then throw new HttpRequestParsingException(error + peek)
     consume
 
   def skipWhiteSpaces =
@@ -70,7 +78,7 @@ class HttpRequestParser(stream: Iterator[Char]) {
     version.trim.toUpperCase match {
       case a if a == "HTTP/1.1" => HttpVersion.`Http/1.1`
       case a if a == "HTTP/1.0" => HttpVersion.`Http/1.0`
-      case a          => throw new Exception(s"Unknown http version: ${a}")
+      case a          => throw new HttpRequestParsingException(s"Unknown http version: ${a}")
     }
 
   def parseHeaders: Seq[Header] =

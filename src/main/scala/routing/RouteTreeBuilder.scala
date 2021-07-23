@@ -9,6 +9,8 @@ enum TreeElem:
   case Leaf[A <: Int](route: Route[A])
   case Branch(branches: Map[Segment, Branch], leafs: Seq[Leaf[? <: Int]])
 
+type Routes = TreeElem.Branch
+
 val emptyBranch: Branch = Branch(Map(), Nil)
 
 import TreeElem._

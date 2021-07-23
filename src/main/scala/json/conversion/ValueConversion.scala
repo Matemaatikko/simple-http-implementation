@@ -88,6 +88,13 @@ trait ValueConversions {
       case JsString(value) if value.length == 1 => value.charAt(0)
       case _ => error (jsValue, "Char")
     }
+
+  given JsonConversion[Unit] with
+    def toJson(a: Unit) = JsNull
+    def fromJson(jsValue: JsValue) =  jsValue match {
+      case JsNull => ()
+      case _ => error (jsValue, "Unit")
+    }
 }
 
 

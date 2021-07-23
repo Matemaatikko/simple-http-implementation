@@ -27,20 +27,29 @@ class RouteTreeBuilderTest extends AnyFlatSpec with should.Matchers {
   import HttpMethod._
   import scala.language.implicitConversions
 
+  val route1 =  (Root / "root" / "findme") (POST -> fun0)
+
   val routes: Seq[Route[? <: Int]] =
-    (Root / "root" / "test" / "values") (
-      POST -> fun0,
-      GET  -> fun0
-    ) ++ (Root / "root" / "user") (
+    (Root / "root" / "test" / "values")
+      (POST -> fun0) ~
+      (GET  -> fun0) 
+    ++ (Root / "root" / "user") (
       POST -> fun0
     ) ++ (Root / "root" / "test" / "values" / "extra") (
       POST -> fun0
     ) ++ (Root / "root" / Variable / "new-stuff") (
       POST -> fun1
-    )
+    ) ++ route1
 
   "RouteTreeBuilding" should "work" in {
     RouteTreeBuilder.build(routes)
+  }
+
+  it should "find correct route" in {
+    val tree = RouteTreeBuilder.build(routes)
+    val route = "root/findme".split("/").toSeq
+    val result = route.findRoute(tree)
+    assert(result == route1)
   }
 
 

@@ -28,7 +28,6 @@ class RoutingTest extends AnyFlatSpec with should.Matchers {
   import scala.language.implicitConversions
 
   val route: Route[0] = (Root / "root" / "test" / "values") (POST -> fun0).head
-
   val route2: Route[1] = (Root / "root" / Variable / "values") (POST -> fun1).head
 
   import routing._
