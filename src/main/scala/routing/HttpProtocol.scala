@@ -19,7 +19,7 @@ enum HttpVersion:
   case `Http/1.1`
 
 //See: https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
-enum StatusCode(number: Int, message: String):
+enum StatusCode(val number: Int, val message: String):
   case Continue extends StatusCode(100, "Continue")
   case SwitchingProtocols extends StatusCode(101, "Switching Protocols")
   case Processing extends StatusCode(102, "Processing ")
@@ -107,5 +107,9 @@ case class HttpResponse(
                          body: Option[String]
                        )
 
+//TODO add tests for following method
 extension (response: HttpResponse)
-  def httpString: String = ???
+  def httpString: String =
+    s"""
+      |${response.version.toString} ${response.statusCode.number.toString} ${response.statusCode.message}
+      |${response.headers.toSeq.map((name, value) => name +": "+ value).mkString("\n")}${response.body.map(value => "\n\n"+value).getOrElse("")}""".stripMargin

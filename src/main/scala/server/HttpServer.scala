@@ -7,9 +7,11 @@ import akka.util.ByteString
 import java.net.InetSocketAddress
 import akka.actor._
 import Tcp._
+import json.JsonParsingException
 import routing.ParseHttpRequest
-
 import routing._
+
+
 object Main extends App {
   given actorSystem: ActorSystem = ActorSystem()
 
@@ -23,11 +25,14 @@ class HttpServer(address: String, port: Int, routes: Routes) extends Actor, Acto
 
   IO(Tcp) ! Bind(self, new InetSocketAddress(address, port))
 
+  var counter = 0
+
   def receive = {
     case b : Bound =>
     case CommandFailed(_: Bind) => context.stop(self)
     case Connected(remote, local) =>
-      val actorName = "http-request-handler" + System.currentTimeMillis()
+      counter += 1
+      val actorName = "http-request-handler" + counter
       log.debug(s"Established tcp connection with address: ${remote.toString}. Assigned actor: ${actorName} to manage the connection.")
       val handler = context.actorOf(Props[HttpRequestHandler](new HttpRequestHandler(routes)), actorName)
       val connection = sender()
@@ -39,7 +44,7 @@ class HttpServer(address: String, port: Int, routes: Routes) extends Actor, Acto
 class HttpRequestHandler(routes: Routes) extends Actor, ActorLogging {
   import Tcp._
   def receive = {
-    case Received(data) => handleData(data)
+    case Received(data) => handleErrors(data, handleData)
     case Tcp.Closed     => context.stop(self)
   }
 
@@ -58,9 +63,9 @@ class HttpRequestHandler(routes: Routes) extends Actor, ActorLogging {
     sender1 ! Tcp.Write(ByteString.fromString(response.httpString))
     sender1 ! Tcp.Close
 
-  def handleErrors(data: ByteString, fun: => HttpResponse) =
+  def handleErrors(data: ByteString, fun: (ByteString) => HttpResponse) =
     try
-      val response = fun
+      val response = fun(data)
       sendResponse(response)
     catch
       case HttpRequestParsingException(msg) =>
@@ -69,6 +74,12 @@ class HttpRequestHandler(routes: Routes) extends Actor, ActorLogging {
       case UnsupportedPath =>
         log.debug("Request path format is unsupported: Url")
         sendResponse(errorMessage("Path format is unsupported."))
+      case MissingBodyException =>
+        log.debug("Request is missing body.")
+        sendResponse(errorMessage("Request is missing body."))
+      case JsonParsingException(message) =>
+        log.debug(s"Failed to parse json from body: ${message}")
+        sendResponse(errorMessage("Invalid json-format"))
       case RouteResolvingException(path, method) =>
         log.debug(s"Given path does not exists: path: ${path}, http-method: ${method}")
         sendResponse(errorMessage("Invalid path: ${path}, http-method: ${method}."))

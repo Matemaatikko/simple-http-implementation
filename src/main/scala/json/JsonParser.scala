@@ -3,12 +3,14 @@ package json
 import scala.annotation.tailrec
 import scala.collection.mutable.Buffer
 
-
-extension (str: String)
-  def toJson: JsValue = ToJson(str)
+case class JsonParsingException(message: String) extends Exception
 
 object ToJson {
-  def apply(str: String): JsValue = new JsonParser((str + " ").iterator).parseJsonValue
+  def apply(str: String): JsValue =
+    try
+      new JsonParser((str + " ").iterator).parseJsonValue
+    catch
+      case e: Exception => throw JsonParsingException(e.getMessage)
 }
 
 //Json-format used: ttps://www.json.org/json-en.html
