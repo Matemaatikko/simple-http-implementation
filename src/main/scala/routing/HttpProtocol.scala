@@ -107,9 +107,7 @@ case class HttpResponse(
                          body: Option[String]
                        )
 
-//TODO add tests for following method
 extension (response: HttpResponse)
   def httpString: String =
-    s"""
-      |${response.version.toString} ${response.statusCode.number.toString} ${response.statusCode.message}
+    s"""|${response.version.toString} ${response.statusCode.number.toString} ${response.statusCode.message}
       |${response.headers.toSeq.map((name, value) => name +": "+ value).mkString("\n")}${response.body.map(value => "\n\n"+value).getOrElse("")}""".stripMargin

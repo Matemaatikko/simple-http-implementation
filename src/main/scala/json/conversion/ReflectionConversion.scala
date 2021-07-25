@@ -2,7 +2,7 @@ package json.conversion
 
 import json._
 
-object ReflexConversion {
+object ReflectionConversion {
 
   def toJson(any: Any): JsValue =
     val c = any.getClass

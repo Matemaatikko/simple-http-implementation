@@ -9,7 +9,8 @@ object ParseHttpRequest {
     try
       new HttpRequestParser(str.iterator).parseRequest
     catch
-      case a: HttpRequestParsingException => throw a
+      case a: HttpRequestParsingException => 
+        throw a
       case a: Exception =>
         throw new HttpRequestParsingException(a.getMessage())
 }

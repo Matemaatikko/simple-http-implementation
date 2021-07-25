@@ -1,8 +1,5 @@
 package json
 
-
-//TODO add tests
-//TODO add prettyPrint
 object JsonPrinter {
 
   def print(jsValue: JsValue): String = jsValue match {

@@ -23,10 +23,12 @@ object RoutingUtils {
       Seq(Route[N](path.reverse, tuple._1, resolveHander1(tuple._2)))
 
   extension[A, B, N <: Int](routes: Seq[Route[N]])
-    def ~(tuple: (HttpMethod, Fun[A, B, N]))(using conv1: JsonConversion[A], conv2: JsonConversion[B]): Seq[Route[N]] = routes :+ Route[N](routes.head.path, tuple._1, resolveHander(tuple._2))
+    def ~(tuple: (HttpMethod, Fun[A, B, N]))(using conv1: JsonConversion[A], conv2: JsonConversion[B]): Seq[Route[N]] = 
+      routes :+ Route[N](routes.head.path, tuple._1, resolveHander(tuple._2))
 
   extension[B, N <: Int](routes: Seq[Route[N]])
-    def ~(tuple: (HttpMethod, Fun1[B, N]))(using conv2: JsonConversion[B]): Seq[Route[N]] = routes :+ Route[N](routes.head.path, tuple._1, resolveHander1(tuple._2))
+    def ~(tuple: (HttpMethod, Fun1[B, N]))(using conv2: JsonConversion[B]): Seq[Route[N]] = 
+      routes :+ Route[N](routes.head.path, tuple._1, resolveHander1(tuple._2))
 
   private def resolveHander[A, B, N <: Int](fun: Fun[A, B, N])
                                  (using conv1: JsonConversion[A], conv2: JsonConversion[B]): HttpHandler[N] =

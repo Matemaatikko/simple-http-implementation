@@ -63,9 +63,9 @@ class HttpRequestHandler(routes: Routes) extends Actor, ActorLogging {
     sender1 ! Tcp.Write(ByteString.fromString(response.httpString))
     sender1 ! Tcp.Close
 
-  def handleErrors(data: ByteString, fun: (ByteString) => HttpResponse) =
+  def handleErrors(data: ByteString, requestHandler: (ByteString) => HttpResponse) =
     try
-      val response = fun(data)
+      val response = requestHandler(data)
       sendResponse(response)
     catch
       case HttpRequestParsingException(msg) =>

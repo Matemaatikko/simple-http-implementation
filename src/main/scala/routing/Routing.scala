@@ -12,12 +12,15 @@ enum MatchPath[A <: Int]:
   case MPath[A <: Int](head: String, tail: MatchPath[A]) extends MatchPath[A]
   case MVariablePath[A <: Int](tail: MatchPath[A]) extends MatchPath[S[A]]
 
+//TODO Separation UUID, Int, String
 enum VariableLike:
-  case Variable
+  case Variable 
 
 enum Params[A <: Int]:
   case TNil extends Params[0]
   case ParamList[A <: Int, T <: Params[A]](head: String, tail: T) extends Params[S[A]]
+
+//TODO Routing should support query parameters
 
 extension(str: String)
   def |[A <: Int, T <: Params[A]](tail: T) = Params.ParamList(str, tail)

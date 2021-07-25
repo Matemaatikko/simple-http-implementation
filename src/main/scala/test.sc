@@ -1,7 +1,7 @@
 import jdk.nashorn.internal.parser.JSONParser
 import jdk.nashorn.internal.runtime.QuotedStringTokenizer
 import json._
-import json.conversion.{CaseClassConversionGeneration, JsonConversion, ReflexConversion}
+import json.conversion.{CaseClassConversionGeneration, JsonConversion, ReflectionConversion}
 
 import scala.annotation.Annotation
 
@@ -18,3 +18,14 @@ def time[R](block: => R): R = {
 import routing.HttpVersion._
 
 println(`Http/1.1`)
+
+import routing._
+
+val response = HttpResponse(
+  HttpVersion.`Http/1.1`,
+  StatusCode.InternalServerError,
+  Map("Content-type"-> "application/json", "Content-length" -> "5"),
+  Some("12345")
+)
+
+response.httpString
