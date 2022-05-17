@@ -28,7 +28,7 @@ class RoutingUtilsTest extends AnyFlatSpec with should.Matchers {
   "RoutingUtils" should "work" in {
     val route: Route[? <: Int] = routes.head
     val params = (routeString.split("/").toSeq.tail).matching(route.path).get
-    val response = route.handler((request, params))
+    val response = route.handler((request, params, Map()))
     assert(response.body == Some("\"head\""))
   }
 }

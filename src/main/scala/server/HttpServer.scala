@@ -34,6 +34,10 @@ class HttpServer(address: String, port: Int, routes: Routes) extends Actor, Acto
   }
 }
 
+case object UnsupportedPath extends Exception
+case class RouteResolvingException(path: String, httpMethod: HttpMethod) extends Exception
+case class InvalidQueryParametersException(queryString: String) extends Exception
+
 
 class HttpRequestHandler(routes: Routes) extends Actor, ActorLogging {
   import Tcp._
@@ -76,17 +80,18 @@ class HttpRequestHandler(routes: Routes) extends Actor, ActorLogging {
         sendResponse(errorMessage("Invalid json-format"))
       case RouteResolvingException(path, method) =>
         log.debug(s"Given path does not exists: path: ${path}, http-method: ${method}")
-        sendResponse(errorMessage("Invalid path: ${path}, http-method: ${method}."))
+        sendResponse(errorMessage(s"Invalid path: ${path}, http-method: ${method}."))
+      case InvalidQueryParametersException(queryString) =>
+        log.debug(s"Invalid query parameters: ${queryString}")
+        sendResponse(errorMessage(s"Invalid query parameters: ${queryString}"))
       case e: Exception =>
         log.warning(s"Failed to handle http-request: \n${data.utf8String} \n\n Error message: ${e.getMessage()}")
         sendResponse(errorMessage("Unkown error."))
 
-  case object UnsupportedPath extends Exception
-  case class RouteResolvingException(path: String, httpMethod: HttpMethod) extends Exception
 
   def handleData(data: ByteString): HttpResponse =
     val parsedMessage = ParseHttpRequest(data.utf8String)
-    val path = resolvePath(parsedMessage.path)
+    val (path, query) = resolvePath(parsedMessage.path)
     val resolvedRoutes = path.findRoute(routes)
     val resultRoute: Route[? <: Int] = resolvedRoutes.find(_.httpMethod == parsedMessage.httpMethod)
       .getOrElse(throw new RouteResolvingException(path.mkString("/"), parsedMessage.httpMethod))
@@ -94,14 +99,29 @@ class HttpRequestHandler(routes: Routes) extends Actor, ActorLogging {
     val matchingData = path.matching(resultRoute.path)
       .getOrElse(throw RouteResolvingException(path.mkString("/"), parsedMessage.httpMethod))
 
-    resultRoute.handler((parsedMessage, matchingData))
+    resultRoute.handler((parsedMessage, matchingData, query))
 
+  def resolveQueryParams(str: String): Map[String, String] =
+    if str.isEmpty then Map()
+    else
+      try
+        str.split("&").map(_.split("=").take(2)).map(l => l(0) -> l(1)).toMap
+      catch
+        case _ => throw InvalidQueryParametersException(str)
 
-  def resolvePath(path: HttpPath): Seq[String] = path match {
+  def divide(str: String, char: Char): (String, String) =
+    val index = str.indexOf(char)
+    if index == -1 then (str, "")
+    else (str.substring(0, index), str.substring(index + 1))
+
+  def resolvePath(path: HttpPath): (Seq[String], Map[String, String]) = path match {
     case HttpPath.Route(value)  =>
-      val splitted = value.trim.split("/").toSeq
-      if splitted.head == "" then splitted.tail else splitted
-    case HttpPath.Url(value)    => throw UnsupportedPath
+      val (start, end) = divide(value, '?')
+      val query = resolveQueryParams(end)
+
+      val splitted = start.trim.split("/").toSeq
+      if splitted.head == "" then splitted.tail -> query else splitted -> query
+    case HttpPath.Url(value) => throw UnsupportedPath
   }
 }
 

@@ -10,9 +10,9 @@ enum HttpMethod:
   case OPTIONS
   case TRACE
 
-enum HttpPath:
-  case Url(value: String)
-  case Route(value: String)
+enum HttpPath(val value: String):
+  case Url(override val value: String) extends HttpPath(value)
+  case Route(override val value: String) extends HttpPath(value)
 
 enum HttpVersion:
   case `Http/1.0`

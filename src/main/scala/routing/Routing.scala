@@ -19,8 +19,6 @@ enum Params[A <: Int]:
   case TNil extends Params[0]
   case ParamList[A <: Int, T <: Params[A]](head: String, tail: T) extends Params[S[A]]
 
-//TODO Routing should support query parameters
-
 extension(str: String)
   def |[A <: Int, T <: Params[A]](tail: T) = Params.ParamList(str, tail)
 
@@ -31,7 +29,9 @@ extension[A <: Int](a: Params[A])
   }
 
 import Params._
-type HttpHandler[A <: Int] = Tuple2[HttpRequest, Params[A]] => HttpResponse
+
+// HttpRequest, Path parameters, Query parameters
+type HttpHandler[A <: Int] = Tuple3[HttpRequest, Params[A], Map[String, String]] => HttpResponse
 
 case class Route[A <: Int](path: MatchPath[A], httpMethod: HttpMethod, handler: HttpHandler[A])
 
@@ -56,16 +56,6 @@ extension[A <: Int](path: RoutePath[A])
     case VariablePath(list) => list.reverse.appendVariable
   }
 
-object SimpleRouting {
-  extension[A <: Int](path: RoutePath[A])
-    def apply(tuple: (HttpMethod, HttpHandler[A])) = Seq(Route[A](path.reverse, tuple._1, tuple._2))
-
-  extension[A <: Int](routes: Seq[Route[A]])
-    def ~(tuple: (HttpMethod, HttpHandler[A])) = routes :+ Route[A](routes.head.path, tuple._1, tuple._2)
-}
-
-
-
 extension(pathList: Seq[String])
   def matching[A <: Int](path: MatchPath[A]): Option[Params[A]] =
     path match {
@@ -79,4 +69,11 @@ extension(pathList: Seq[String])
       case _ => None
     }
 
+object SimpleRouting {
+  extension[A <: Int](path: RoutePath[A])
+    def apply(tuple: (HttpMethod, HttpHandler[A])) = Seq(Route[A](path.reverse, tuple._1, tuple._2))
+
+  extension[A <: Int](routes: Seq[Route[A]])
+    def ~(tuple: (HttpMethod, HttpHandler[A])) = routes :+ Route[A](routes.head.path, tuple._1, tuple._2)
+}
 

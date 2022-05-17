@@ -47,7 +47,7 @@ object RoutingUtils {
   private def resolveHandler[A, B, N <: Int](fun: Fun[A, B, N])
                                  (using conv1: JsonConversion[A], conv2: JsonConversion[B]): HttpHandler[N] =
     args =>
-      val (request, params) = args
+      val (request, params, _) = args
       val requestBody = request.body.getOrElse(throw MissingBodyException)
       val json = ToJson(requestBody)
       val (statusCode, result) = fun(conv1.fromJson(json), params)
@@ -58,7 +58,7 @@ object RoutingUtils {
   private def resolveHandler1[B, N <: Int](fun: Fun1[B, N])
                                            (using conv2: JsonConversion[B]): HttpHandler[N] =
     args =>
-      val (request, params) = args
+      val (request, params, _) = args
       val (statusCode, result) = fun(params)
       val resultJson = conv2.toJson(result)
       val responseBody = if result == () then None else Some(JsonPrinter.print(resultJson))
