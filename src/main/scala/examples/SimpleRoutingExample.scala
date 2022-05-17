@@ -1,9 +1,13 @@
 package examples
 
 import akka.actor.{ActorSystem, Props}
+import examples.UsageExample.User
+import json.{JsObject, JsValue, JsonPrinter}
+import routing._
 import server.HttpServer
 
-object UsageExample extends App{
+
+object SimpleRoutingExample extends App {
 
   //Data
   case class User(userId: String, name: String, age: Int)
@@ -14,37 +18,39 @@ object UsageExample extends App{
   import JsonConversions.given
 
   given Class[User] = classOf[User]
-  given JsonConversion[User] = jsonConversion3(User.apply)
+  val conversion = jsonConversion3(User.apply)
 
   //Actions
 
   import routing.StatusCode._
 
-  def getUser(userId: String) =
+  def getUser(request: HttpRequest, userId: String): HttpResponse =
     println("Sending user data: " + userId)
-    OK -> User(userId, "Joe", 99)
 
-  def ping = () =>
-    println("PING")
-    OK -> ()
+    val user = User(userId, "Joe", 99)
+    val bodyJs: JsValue = conversion.toJson(user)
+    val bodyString = JsonPrinter.print(bodyJs)
 
-  def updateUser(user: User, userId: String) =
-    println("Updating user data: " + user.toString)
-    OK -> ()
+    HttpResponse(
+        routing.HttpVersion.`Http/1.0`, OK,
+        Map(
+          "Content-type"->"application/json",
+          "Content-length" -> bodyString.length.toString
+        ),
+        Some(bodyString)
+      )
+
+  def getUser2: HttpHandler[1] = args => getUser(args._1, args._2.get(0))
 
   //Routing
 
   import routing._
   import HttpMethod._
-  import RoutingUtils._
+  import SimpleRouting._
 
   val routes: Seq[Route[? <: Int]] =
     (Root / "users" / Variable)
-      (GET  -> getUser.convert) ~
-      (POST -> updateUser.convert)
-    ++
-      (Root / "ping")
-        (GET  -> ping.convert)
+      (GET  -> getUser2)
 
   val routeTree = RouteTreeBuilder.build(routes)
 

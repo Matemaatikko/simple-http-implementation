@@ -10,7 +10,7 @@ enum HttpMethod:
   case OPTIONS
   case TRACE
 
-enum Path:
+enum HttpPath:
   case Url(value: String)
   case Route(value: String)
 
@@ -94,7 +94,7 @@ case class Header(name: String, value: String)
 
 case class HttpRequest(
                         httpMethod: HttpMethod,
-                        path: Path,
+                        path: HttpPath,
                         version: HttpVersion,
                         httpHeaders: Seq[Header],
                         body: Option[String]

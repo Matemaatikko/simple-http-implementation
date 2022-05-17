@@ -2,19 +2,18 @@ package routing
 
 import scala.compiletime.ops.int.S
 
-enum RoutePath[A <: Int]:
-  case Root extends RoutePath[0]
-  case Path[A <: Int](start: RoutePath[A], last: String) extends RoutePath[A]
-  case VariablePath[A <: Int](list: RoutePath[A]) extends RoutePath[S[A]]
+trait RoutePath[A <: Int]
+case object Root extends RoutePath[0]
+case class Path[A <: Int](start: RoutePath[A], last: String) extends RoutePath[A]
+case class VariablePath[A <: Int](list: RoutePath[A]) extends RoutePath[S[A]]
 
-enum MatchPath[A <: Int]:
-  case Empty extends MatchPath[0]
-  case MPath[A <: Int](head: String, tail: MatchPath[A]) extends MatchPath[A]
-  case MVariablePath[A <: Int](tail: MatchPath[A]) extends MatchPath[S[A]]
+trait MatchPath[A <: Int]
+case object Empty extends MatchPath[0]
+case class MPath[A <: Int](head: String, tail: MatchPath[A]) extends MatchPath[A]
+case class MVariablePath[A <: Int](tail: MatchPath[A]) extends MatchPath[S[A]]
 
-//TODO Separation UUID, Int, String
-enum VariableLike:
-  case Variable 
+trait VariableLike
+case object Variable extends VariableLike
 
 enum Params[A <: Int]:
   case TNil extends Params[0]
@@ -36,9 +35,6 @@ type HttpHandler[A <: Int] = Tuple2[HttpRequest, Params[A]] => HttpResponse
 
 case class Route[A <: Int](path: MatchPath[A], httpMethod: HttpMethod, handler: HttpHandler[A])
 
-import RoutePath._
-import MatchPath._
-
 extension[A <: Int](path: MatchPath[A])
   def append(str: String): MatchPath[A] = path match {
     case Empty               => MPath(str, Empty)
@@ -59,10 +55,16 @@ extension[A <: Int](path: RoutePath[A])
     case Path(start, last)  => start.reverse.append(last)
     case VariablePath(list) => list.reverse.appendVariable
   }
-  def apply(tuple: (HttpMethod, HttpHandler[A])) = Seq(Route[A](path.reverse, tuple._1, tuple._2))
 
-extension[A <: Int](routes: Seq[Route[A]])
-  def ~(tuple: (HttpMethod, HttpHandler[A])) = routes :+ Route[A](routes.head.path, tuple._1, tuple._2)
+object SimpleRouting {
+  extension[A <: Int](path: RoutePath[A])
+    def apply(tuple: (HttpMethod, HttpHandler[A])) = Seq(Route[A](path.reverse, tuple._1, tuple._2))
+
+  extension[A <: Int](routes: Seq[Route[A]])
+    def ~(tuple: (HttpMethod, HttpHandler[A])) = routes :+ Route[A](routes.head.path, tuple._1, tuple._2)
+}
+
+
 
 extension(pathList: Seq[String])
   def matching[A <: Int](path: MatchPath[A]): Option[Params[A]] =

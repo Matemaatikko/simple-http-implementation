@@ -9,8 +9,6 @@ class RoutingUtilsTest extends AnyFlatSpec with should.Matchers {
 
   import RoutingUtils._
   import HttpMethod._
-  import routing.RoutePath.Root
-  import routing.VariableLike.Variable
 
   def fun(a: Seq[String], arg: String) = StatusCode.OK -> a.head
   def fun1(a: Seq[String], arg: String) = StatusCode.OK -> ()
@@ -23,7 +21,7 @@ class RoutingUtilsTest extends AnyFlatSpec with should.Matchers {
       (POST -> fun1.convert)
 
   val routeString = "/root/123/values"
-  val request = HttpRequest(HttpMethod.POST, Path.Route(routeString), HttpVersion.`Http/1.1`, Nil, Some("[\"head\"]"))
+  val request = HttpRequest(HttpMethod.POST, HttpPath.Route(routeString), HttpVersion.`Http/1.1`, Nil, Some("[\"head\"]"))
 
   import routing.Params.TNil
 

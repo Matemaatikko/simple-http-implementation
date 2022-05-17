@@ -22,7 +22,7 @@ class HttpRequestParserTest extends AnyFlatSpec with should.Matchers {
       Header("content-type", "text/plain;charset=utf-8"),
       Header("content-length", "14")
     )
-    val result = HttpRequest(HttpMethod.POST, Path.Route("/"), HttpVersion.`Http/1.1`, headers, Some("{\"value\": 123}"))
+    val result = HttpRequest(HttpMethod.POST, HttpPath.Route("/"), HttpVersion.`Http/1.1`, headers, Some("{\"value\": 123}"))
     assert(request == result)
   }
 

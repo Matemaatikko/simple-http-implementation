@@ -3,7 +3,6 @@ package routing
 import org.scalatest._
 import flatspec._
 import matchers._
-import routing.RoutePath.Root
 
 class RouteTreeBuilderTest extends AnyFlatSpec with should.Matchers {
 
@@ -23,7 +22,7 @@ class RouteTreeBuilderTest extends AnyFlatSpec with should.Matchers {
     def apply(fun: Fun1): HttpHandler[1] = args => fun(args._1, args._2.get(0))
 
 
-  import VariableLike._
+  import SimpleRouting._
   import HttpMethod._
   import scala.language.implicitConversions
 

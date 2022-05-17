@@ -11,10 +11,9 @@ enum TreeElem:
 
 type Routes = TreeElem.Branch
 
-val emptyBranch: Branch = Branch(Map(), Nil)
+def emptyBranch: Branch = Branch(Map(), Nil)
 
 import TreeElem._
-import MatchPath._
 import Segment._
 import routing.Params.TNil
 

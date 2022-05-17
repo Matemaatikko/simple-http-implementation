@@ -69,10 +69,10 @@ class HttpRequestParser(stream: Iterator[Char]) {
     val method = collectUntil(peek == ' ')
     HttpMethod.valueOf(method)
 
-  def parsePath: Path =
+  def parsePath: HttpPath =
     skip(' ')
-    if(peek == '/') Path.Route(collectUntil(peek == ' '))
-    else Path.Url(collectUntil(peek == ' '))
+    if(peek == '/') HttpPath.Route(collectUntil(peek == ' '))
+    else HttpPath.Url(collectUntil(peek == ' '))
 
   def parseVersion: HttpVersion =
     val version = collectUntil(isLineEnd)

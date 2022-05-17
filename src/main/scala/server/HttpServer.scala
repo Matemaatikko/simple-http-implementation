@@ -12,12 +12,6 @@ import routing.ParseHttpRequest
 import routing._
 
 
-object Main extends App {
-  given actorSystem: ActorSystem = ActorSystem()
-
-  val serverRef = actorSystem.actorOf(Props[HttpServer](), "http-server")
-}
-
 class HttpServer(address: String, port: Int, routes: Routes) extends Actor, ActorLogging {
 
   import Tcp._
@@ -103,11 +97,11 @@ class HttpRequestHandler(routes: Routes) extends Actor, ActorLogging {
     resultRoute.handler((parsedMessage, matchingData))
 
 
-  def resolvePath(path: Path): Seq[String] = path match {
-    case Path.Route(value)  =>
+  def resolvePath(path: HttpPath): Seq[String] = path match {
+    case HttpPath.Route(value)  =>
       val splitted = value.trim.split("/").toSeq
       if splitted.head == "" then splitted.tail else splitted
-    case Path.Url(value)    => throw UnsupportedPath
+    case HttpPath.Url(value)    => throw UnsupportedPath
   }
 }
 
